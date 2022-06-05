@@ -17,24 +17,66 @@ export const chooseRandom = (array = [], numItems) => {
     .reduce(res => {
       let randomIndex = Math.floor(Math.random() * array.length)
 
-      while (res.indexOf(randomIndex) !== -1) {
-        randomIndex = Math.floor(Math.random() * array.length)
-      }
-
       return res.concat(randomIndex)
     }, [])
 
   return randomIndices.map(individual => array[individual])
-
-  
 }
 
-export const createPrompt = () => {
-  // TODO implement createPrompt
+export const createPrompt = ({ numQuestions = 1, numChoices = 2 } = {}) => {
+  const numQuestionsN = Number(numQuestions)
+  const numChoicesN = Number(numChoices)
+  const questionObject = questionNumber => ({
+    type: 'input',
+    name: `question-${questionNumber}`,
+    message: `Enter question ${questionNumber}`
+  })
+
+  const choiceObject = (choiceNumber, questionNumber) => ({
+    type: 'input',
+    name: `question-${questionNumber}-choice-${choiceNumber}`,
+    message: `Enter answer choice ${choiceNumber} for question ${questionNumber}`
+  })
+
+  return Array(numQuestionsN + numQuestionsN * numChoicesN)
+    .fill()
+    .map((x, index) => {
+      if (index % (numChoicesN + 1) === 0) {
+        return questionObject(
+          index / (numChoicesN + 1) ? index / (numChoicesN + 1) + 1 : 1
+        )
+      } else {
+        return choiceObject(
+          index % (numChoicesN + 1),
+          Math.ceil(index / (numChoicesN + 1))
+        )
+      }
+    })
+ 
 }
 
-export const createQuestions = () => {
-  // TODO implement createQuestions
+export const createQuestions = (questionObject = {}) => {
+  let questionKeys = Object.keys(questionObject)
+
+  let questions = []
+
+  questionKeys.forEach(element => {
+    if (!element.includes('choice')) {
+      questions[element] = {
+        type: 'list',
+        name: element,
+        message: questionObject[element],
+        choices: []
+      }
+    } else {
+   
+      let indexString = 'question-' + element.split('-')[1]
+      let tempObject = questions[indexString]
+      tempObject['choices'].push(questionObject[element])
+    }
+  })
+
+  return Object.values(questions)
 }
 
 export const readFile = path =>
